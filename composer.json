@@ -1,0 +1,66 @@
+{
+    "name": "satlane/satlane-laravel",
+    "description": "Laravel integration for SatLane — non-custodial Bitcoin payments. Auto-mirrors invoices and webhook events into your DB, dispatches events to typed handlers, ships an install wizard.",
+    "license": "MIT",
+    "type": "library",
+    "homepage": "https://satlane.com",
+    "support": {
+        "docs": "https://satlane.com/docs",
+        "source": "https://github.com/ishola11/satlane",
+        "issues": "https://github.com/ishola11/satlane/issues"
+    },
+    "keywords": [
+        "bitcoin",
+        "payments",
+        "satlane",
+        "btc",
+        "laravel",
+        "checkout",
+        "non-custodial"
+    ],
+    "require": {
+        "php": "^8.1",
+        "ext-json": "*",
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "illuminate/database": "^10.0|^11.0|^12.0",
+        "illuminate/console": "^10.0|^11.0|^12.0",
+        "illuminate/http": "^10.0|^11.0|^12.0",
+        "satlane/satlane-php": "^0.1"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Satlane\\Laravel\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Satlane\\Laravel\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Satlane\\Laravel\\SatlaneServiceProvider"
+            ],
+            "aliases": {
+                "Satlane": "Satlane\\Laravel\\Facades\\Satlane"
+            }
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../satlane-php",
+            "options": { "symlink": true }
+        }
+    ],
+    "scripts": {
+        "test": "phpunit"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

@@ -1,13 +1,13 @@
 {
     "name": "satlane/satlane-laravel",
-    "description": "Laravel integration for SatLane — non-custodial Bitcoin payments. Auto-mirrors invoices and webhook events into your DB, dispatches events to typed handlers, ships an install wizard.",
+    "description": "Laravel integration for SatLane : non-custodial Bitcoin payments. Auto-mirrors invoices and webhook events into your DB, dispatches events to typed handlers, ships an install wizard.",
     "license": "MIT",
     "type": "library",
     "homepage": "https://satlane.com",
     "support": {
         "docs": "https://satlane.com/docs",
-        "source": "https://github.com/ishola11/satlane",
-        "issues": "https://github.com/ishola11/satlane/issues"
+        "source": "https://github.com/ishola11/satlane-laravel",
+        "issues": "https://github.com/ishola11/satlane-laravel/issues"
     },
     "keywords": [
         "bitcoin",
@@ -25,11 +25,12 @@
         "illuminate/database": "^10.0|^11.0|^12.0",
         "illuminate/console": "^10.0|^11.0|^12.0",
         "illuminate/http": "^10.0|^11.0|^12.0",
-        "satlane/satlane-php": "^0.1"
+        "satlane/satlane-php": "^0.2",
+        "doctrine/dbal": "^3.6|^4.0"
     },
     "require-dev": {
         "orchestra/testbench": "^8.0|^9.0|^10.0",
-        "phpunit/phpunit": "^10.0"
+        "phpunit/phpunit": "^10.0|^11.0"
     },
     "autoload": {
         "psr-4": {
@@ -55,7 +56,12 @@
         {
             "type": "path",
             "url": "../satlane-php",
-            "options": { "symlink": true }
+            "options": {
+                "symlink": true,
+                "versions": {
+                    "satlane/satlane-php": "0.2.0"
+                }
+            }
         }
     ],
     "scripts": {

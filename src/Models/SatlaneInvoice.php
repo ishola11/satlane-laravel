@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SatlaneInvoice extends Model
 {
+    protected $dateFormat = 'Y-m-d H:i:s.u';
     protected $primaryKey = 'id';
     public $incrementing = false;
     protected $keyType = 'string';
@@ -28,6 +29,10 @@ class SatlaneInvoice extends Model
         'first_seen_at'         => 'datetime',
         'last_updated_at'       => 'datetime',
         'raw'                   => 'array',
+        'last_event_at' => 'datetime',
+        'last_event_unix_ms' => 'integer',
+        'payment_summary' => 'array',
+        'checkout_urls' => 'array',
     ];
 
     public function __construct(array $attributes = [])
@@ -50,12 +55,38 @@ class SatlaneInvoice extends Model
     {
         return in_array($this->status, ['paid', 'late_paid'], true);
     }
-    public function isUnderpaid(): bool { return $this->status === 'underpaid'; }
-    public function isOverpaid(): bool { return $this->status === 'overpaid'; }
-    public function isExpired(): bool { return $this->status === 'expired'; }
-    public function isCancelled(): bool { return $this->status === 'cancelled'; }
-    public function isReverted(): bool { return $this->status === 'reverted'; }
-    public function needsReview(): bool { return $this->status === 'requires_review'; }
+    public function isConfirming(): bool
+    {
+        return $this->payment_phase === 'confirming';
+    }
+    public function checkoutUrl(): ?string
+    {
+        return $this->checkout_urls['branded'] ?? $this->hosted_checkout_url;
+    }
+    public function isUnderpaid(): bool
+    {
+        return $this->status === 'underpaid';
+    }
+    public function isOverpaid(): bool
+    {
+        return $this->status === 'overpaid';
+    }
+    public function isExpired(): bool
+    {
+        return $this->status === 'expired';
+    }
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
+    }
+    public function isReverted(): bool
+    {
+        return $this->status === 'reverted';
+    }
+    public function needsReview(): bool
+    {
+        return $this->status === 'requires_review';
+    }
 
     /** Sats still owed (only meaningful while underpaid). */
     public function remainingSats(): int

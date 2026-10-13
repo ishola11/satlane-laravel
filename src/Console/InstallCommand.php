@@ -26,27 +26,30 @@ class InstallCommand extends Command
         {--no-publish : Skip publishing config + migrations.}
         {--no-ping    : Skip the API connectivity test.}';
 
+    private bool $tasksFailed = false;
+
     protected $description = 'Set up the SatLane Laravel integration: publish, migrate, validate config, test API connectivity.';
 
     public function handle(): int
     {
+        $this->tasksFailed = false;
         $this->info('SatLane install wizard');
         $this->line('-----------------------');
 
         // ── 1. Publish ─────────────────────────────────────────
         if (!$this->option('no-publish')) {
             $this->task('Publishing config and migrations', function () {
-                $this->call('vendor:publish', [
+                $publishResult[] = $this->call('vendor:publish', [
                     '--provider' => 'Satlane\\Laravel\\SatlaneServiceProvider',
                     '--tag'      => 'satlane-config',
                     '--force'    => false, // never silently overwrite an edited config
                 ]);
-                $this->call('vendor:publish', [
+                $publishResult[] = $this->call('vendor:publish', [
                     '--provider' => 'Satlane\\Laravel\\SatlaneServiceProvider',
                     '--tag'      => 'satlane-migrations',
                     '--force'    => false,
                 ]);
-                return true;
+                return !array_filter($publishResult, static fn ($code) => $code !== 0);
             });
         }
 
@@ -54,8 +57,7 @@ class InstallCommand extends Command
         if (!$this->option('no-migrate')) {
             $this->task('Running migrations', function () {
                 try {
-                    $this->call('migrate', ['--force' => app()->environment('production')]);
-                    return true;
+                    return $this->call('migrate', ['--force' => app()->environment('production')]) === 0;
                 } catch (Throwable $e) {
                     $this->error('Migration failed: ' . $e->getMessage());
                     $this->line('  Check DATABASE_URL / db.* config and rerun `php artisan migrate`.');
@@ -88,7 +90,7 @@ class InstallCommand extends Command
                     // Use the public health endpoint — no auth needed but
                     // we use the SDK so we exercise the same code path
                     // a real app would.
-                    $client->request('GET', '/health');
+                    $client->invoices->list(['limit' => 1]);
                     return true;
                 } catch (ApiException $e) {
                     $this->line('');
@@ -113,7 +115,7 @@ class InstallCommand extends Command
 
         // ── 5. Final guidance ──────────────────────────────────
         $this->line('');
-        if (count($problems) === 0) {
+        if (count($problems) === 0 && !$this->tasksFailed) {
             $this->info('✓ Install complete.');
             $this->line('');
             $this->line('Next steps:');
@@ -121,12 +123,12 @@ class InstallCommand extends Command
             $this->line('  2. Set SATLANE_WEBHOOK_HANDLER=App\\YourHandler in .env, OR call:');
             $this->line('       Route::satlaneWebhook(\'/webhooks/satlane\', App\\YourHandler::class);');
             $this->line('  3. Add the webhook URL to your store in the SatLane dashboard.');
-            $this->line('  4. Test in test mode with `php artisan satlane:simulate`.');
+            $this->line('  4. Create a Sandbox invoice, then use the dashboard simulator or the SDK simulate method.');
             return self::SUCCESS;
         }
 
-        $this->warn('Install completed with warnings. Fix the items above before going live.');
-        return self::SUCCESS;
+        $this->warn('Install incomplete. Fix the errors above before going live.');
+        return self::FAILURE;
     }
 
     /**
@@ -171,6 +173,9 @@ class InstallCommand extends Command
             $ok = (bool) $fn();
         } catch (Throwable $e) {
             $ok = false;
+        }
+        if (!$ok) {
+            $this->tasksFailed = true;
         }
         $ms = (int) ((microtime(true) - $start) * 1000);
         $this->getOutput()->writeln($ok ? "<info>✓</info> ({$ms}ms)" : '<error>✗</error>');

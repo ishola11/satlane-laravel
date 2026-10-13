@@ -25,23 +25,21 @@ class ReplayCommand extends Command
     protected $signature = 'satlane:replay
         {event_id? : The event_id to replay. Required unless --failed is used.}
         {--failed : Replay every event row with a non-null handler_error.}
-        {--limit=100 : Cap on rows processed when --failed.}';
+        {--limit=100 : Cap on rows processed when --failed.}
+        {--force : Reprocess completed or stale events; handler side effects must be idempotent.}';
 
     protected $description = 'Re-dispatch stored webhook events to your handler.';
 
     public function handle(): int
     {
-        $handlerClass = config('satlane.route.handler');
-        if (!$handlerClass || !class_exists($handlerClass)) {
-            $this->error('No webhook handler class configured (SATLANE_WEBHOOK_HANDLER). Set it, then rerun.');
+        if (!$this->argument('event_id') && !$this->option('failed')) {
+            $this->error('Specify an event ID or --failed.');
             return self::FAILURE;
         }
-        $handler = app($handlerClass);
-        if (!$handler instanceof WebhookHandler) {
-            $this->error("[$handlerClass] does not extend " . WebhookHandler::class);
+        if ((int)$this->option('limit') < 1 || (int)$this->option('limit') > 10000) {
+            $this->error('Replay limit must be between 1 and 10000.');
             return self::FAILURE;
         }
-
         $rows = $this->option('failed')
             ? SatlaneEvent::whereNotNull('handler_error')->orderBy('id')->limit((int) $this->option('limit'))->get()
             : SatlaneEvent::where('event_id', $this->argument('event_id'))->get();
@@ -54,30 +52,12 @@ class ReplayCommand extends Command
         $ok = 0;
         $failed = 0;
         foreach ($rows as $row) {
-            $invoiceData = $row->payload['data']['invoice'] ?? null;
-            if (!$invoiceData) {
-                $this->warn("Event {$row->event_id}: payload has no invoice. Skipping.");
-                continue;
-            }
-            $invoice = SatlaneInvoice::find($invoiceData['id'] ?? '');
-            if (!$invoice) {
-                $this->warn("Event {$row->event_id}: invoice {$invoiceData['id']} not in satlane_invoices. Skipping.");
-                continue;
-            }
             try {
-                $handler->dispatch($row->event_type, $invoice);
-                $row->update([
-                    'handler_error'    => null,
-                    'processed_at'     => now(),
-                    'handler_attempts' => $row->handler_attempts + 1,
-                ]);
-                $this->line("✓ {$row->event_id} ({$row->event_type})");
+                $processor = new \Satlane\Laravel\Webhooks\EventProcessor();
+                $result = $processor->process($row, (bool)$this->option('force'));
+                $this->line("✓ {$row->event_id} ({$row->event_type}, {$result})");
                 $ok++;
             } catch (Throwable $e) {
-                $row->update([
-                    'handler_error'    => substr($e->getMessage(), 0, 64_000),
-                    'handler_attempts' => $row->handler_attempts + 1,
-                ]);
                 $this->error("✗ {$row->event_id}: {$e->getMessage()}");
                 $failed++;
             }

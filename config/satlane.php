@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 return [
     // ─── Credentials ────────────────────────────────────────────────
+    'contract_version' => env('SATLANE_CONTRACT_VERSION', '2026-10-05'),
+    'invoice_locks_table' => 'satlane_invoice_locks',
     'api_key'        => env('SATLANE_API_KEY'),
     'api_base'       => env('SATLANE_API_BASE', 'https://api.satlane.com'),
     'webhook_secret' => env('SATLANE_WEBHOOK_SECRET'),
@@ -35,6 +37,8 @@ return [
     //
     //   Route::satlaneWebhook('/webhooks/satlane', YourHandler::class);
     'route' => [
+        'store_id' => env('SATLANE_STORE_ID'),
+        'environment' => env('SATLANE_ENVIRONMENT'),
         'enabled'    => env('SATLANE_ROUTE_ENABLED', true),
         'path'       => env('SATLANE_ROUTE_PATH', '/webhooks/satlane'),
         'name'       => 'webhooks.satlane',

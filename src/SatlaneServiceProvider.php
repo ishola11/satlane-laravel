@@ -33,6 +33,7 @@ class SatlaneServiceProvider extends ServiceProvider
             return new Client(
                 apiKey:  $apiKey,
                 baseUrl: (string) config('satlane.api_base', 'https://api.satlane.com'),
+                contractVersion: config('satlane.contract_version'),
             );
         });
     }
@@ -71,15 +72,15 @@ class SatlaneServiceProvider extends ServiceProvider
      *   ->middleware('api')
      *
      * Registers the receiver with signature verification + idempotency
-     * + dispatch already wired up. CSRF is excluded inside the
-     * controller flow because we read the raw body.
+     * + dispatch already wired up. The registered route excludes the CSRF middleware; signatures are
+     * verified against the raw request body.
      */
     private function registerRouteMacro(): void
     {
-        Route::macro('satlaneWebhook', function (string $uri, string $handlerClass) {
+        Route::macro('satlaneWebhook', function (string $uri, string $handlerClass, array $connection = []) {
             /** @var Router $this */
-            return $this->post($uri, function (\Illuminate\Http\Request $request) use ($handlerClass) {
-                return (new WebhookController())($request, $handlerClass);
+            return $this->post($uri, function (\Illuminate\Http\Request $request) use ($handlerClass, $connection) {
+                return (new WebhookController())($request, $handlerClass, $connection);
             })->withoutMiddleware([
                 \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
             ]);
@@ -93,9 +94,13 @@ class SatlaneServiceProvider extends ServiceProvider
      */
     private function registerConfiguredRoute(): void
     {
-        if (!config('satlane.route.enabled', true)) return;
+        if (!config('satlane.route.enabled', true)) {
+            return;
+        }
         $handler = config('satlane.route.handler');
-        if (!$handler) return;
+        if (!$handler) {
+            return;
+        }
 
         $path = (string) config('satlane.route.path', '/webhooks/satlane');
         $name = (string) config('satlane.route.name', 'webhooks.satlane');
@@ -113,7 +118,9 @@ class SatlaneServiceProvider extends ServiceProvider
 
     private function registerCommands(): void
     {
-        if (!$this->app->runningInConsole()) return;
+        if (!$this->app->runningInConsole()) {
+            return;
+        }
 
         $this->commands([
             InstallCommand::class,

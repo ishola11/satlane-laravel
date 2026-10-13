@@ -29,7 +29,7 @@ class PruneCommand extends Command
         }
 
         $cutoff = now()->subDays($days);
-        $deleted = SatlaneEvent::where('received_at', '<', $cutoff)->delete();
+        $deleted = SatlaneEvent::where('received_at', '<', $cutoff)->whereNotNull('processed_at')->whereNull('handler_error')->delete();
         $this->info("Pruned {$deleted} event row(s) older than {$days} day(s).");
         return self::SUCCESS;
     }

@@ -32,23 +32,48 @@ abstract class WebhookHandler
     /**
      * Override per-event in your subclass. Default no-op.
      */
-    public function created(SatlaneInvoice $invoice): void {}
-    public function paymentSeen(SatlaneInvoice $invoice): void {}
-    public function paid(SatlaneInvoice $invoice): void {}
-    public function latePaid(SatlaneInvoice $invoice): void {}
-    public function underpaid(SatlaneInvoice $invoice): void {}
-    public function overpaid(SatlaneInvoice $invoice): void {}
-    public function expired(SatlaneInvoice $invoice): void {}
-    public function paymentReverted(SatlaneInvoice $invoice): void {}
-    public function requiresReview(SatlaneInvoice $invoice): void {}
-    public function cancelled(SatlaneInvoice $invoice): void {}
+    public function created(SatlaneInvoice $invoice): void
+    {
+    }
+    public function paymentSeen(SatlaneInvoice $invoice): void
+    {
+    }
+    public function paid(SatlaneInvoice $invoice): void
+    {
+    }
+    public function latePaid(SatlaneInvoice $invoice): void
+    {
+    }
+    public function underpaid(SatlaneInvoice $invoice): void
+    {
+    }
+    public function overpaid(SatlaneInvoice $invoice): void
+    {
+    }
+    public function expired(SatlaneInvoice $invoice): void
+    {
+    }
+    public function paymentReverted(SatlaneInvoice $invoice): void
+    {
+    }
+    public function requiresReview(SatlaneInvoice $invoice): void
+    {
+    }
+    public function graceEnding(SatlaneInvoice $invoice): void
+    {
+    }
+    public function cancelled(SatlaneInvoice $invoice): void
+    {
+    }
 
     /**
      * Catch-all for event types your subclass didn't implement
      * explicitly. Default no-op so unknown future event types
      * don't crash your handler.
      */
-    public function default(string $eventType, SatlaneInvoice $invoice): void {}
+    public function default(string $eventType, SatlaneInvoice $invoice): void
+    {
+    }
 
     /**
      * Dispatch by event_type. Called by the controller — you
@@ -66,6 +91,7 @@ abstract class WebhookHandler
             'invoice.expired'          => 'expired',
             'invoice.payment_reverted' => 'paymentReverted',
             'invoice.requires_review'  => 'requiresReview',
+            'invoice.grace_ending'     => 'graceEnding',
             'invoice.cancelled'        => 'cancelled',
             default                    => null,
         };

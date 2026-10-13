@@ -1,6 +1,6 @@
 # Upgrade to 0.2
 
-Prepared locally; not yet published. Upgrade the PHP and Laravel packages together.
+Version 0.2.0 was published on 13 October 2026. Upgrade the PHP and Laravel packages together.
 
 1. Back up the application database and review your handler's order-level idempotency.
 2. Install the new package and publish the additive migration/config using the normal package installer or vendor:publish. Do not overwrite edited configuration.

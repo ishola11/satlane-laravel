@@ -1,10 +1,10 @@
 # SatLane Laravel integration
 
-Invoice creation, verified webhook delivery, local invoice snapshots and safe replay. The prepared 0.2 release supports Laravel 10, 11 and 12; PHP 8.1 supports Laravel 10, while newer Laravel versions require PHP 8.2 or newer.
+Invoice creation, verified webhook delivery, local invoice snapshots and safe replay. The 0.2 release supports Laravel 10, 11 and 12; PHP 8.1 supports Laravel 10, while newer Laravel versions require PHP 8.2 or newer.
 
 ## Install and configure
 
-Once 0.2 is published:
+Install the published 0.2 release:
 
 ```bash
 composer require satlane/satlane-laravel:^0.2
